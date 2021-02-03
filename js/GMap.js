@@ -115,17 +115,25 @@ function initMap() {
     let infowindowContent_prime = infowindowContent.cloneNode(true)
     infowindow.setContent(infowindowContent);
     const marker = new google.maps.Marker({
-        map: map
+        map: map,
+        animation: google.maps.Animation.DROP
     });
+    var latestClicked = "";
     // marker.onclick action: populate the city marker clicked on the HTML cards (renderForecastDays)
     if (markers && markers.length > 0)
         markers.forEach(marker => {
             marker.addListener("click", () => {
-                console.log(marker.title)
+                console.log(marker.title);
+                // Do not render again when the same marker is clicked !
+                if (latestClicked == marker.title)
+                    return;
+                else
+                    latestClicked = marker.title;
                 infowindowContent_prime.getElementsByClassName("title")[0].innerHTML = marker.title
                 infowindow.close();
                 infowindow.setContent(infowindowContent_prime);
                 infowindow.open(map, marker);
+                toggleBounce();
                 if (currentList && currentList.features && currentList.features.length > 0) {
                     document.getElementById('location').innerHTML = marker.title; //currentList.features[0].properties.name;
                     cityWeather = currentList.weather.filter((item) => {
@@ -138,6 +146,18 @@ function initMap() {
                     renderPollution(cityPollution);
                 }
             });
+            function toggleBounce() {
+                if (marker.getAnimation() !== null) {
+                    marker.setAnimation(null);
+                } else {
+                    markers.forEach(marker_ => {
+                        marker_.setAnimation(null);
+                    });
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+
+                }
+            }
+
         });
 
     // A possible second search (although not well managed and buggy, now)
@@ -230,7 +250,7 @@ function nearbyRequest(place) {
         document.getElementById('location').innerHTML = currentList.features[0].properties.name;
         renderForecastDays(currentList.weather[0].daily);
         initMap();
-        generateWidgetLink();
+        // generateWidgetLink();
         hide_loading(); // Unblock page
         return;
     }
@@ -249,7 +269,7 @@ function nearbyRequest(place) {
         document.getElementById('location').innerHTML = currentList.features[0].properties.name;
         renderForecastDays(currentList.weather[0].daily);
         initMap();
-        generateWidgetLink();
+        // generateWidgetLink();
         hide_loading(); // Unblock page
     };
     request.send();
@@ -301,8 +321,9 @@ function showplacesList( /*data,*/ places) {
 function renderForecastDays(dailies) {
     // console.log("renderForecastDays");
     // console.log(JSON.stringify(dailies));
-    dailies.reverse();
-
+    dailies.sort(function (first, second) {
+        return second.dt - first.dt;
+    });
     var weekdayNames;
     switch (language) {
         case "en":
@@ -380,7 +401,7 @@ function renderPollution(pollution) {
     var d = new Date(0);
     d.setUTCSeconds(pollution.list[0].dt);
     var ISODate = d.toISOString().slice(0, 10);
-    const {co, no, no2 } = pollution.list[0].components;
+    const { co, no, no2 } = pollution.list[0].components;
     var theme = {
         1: "#4C5273",
         2: "#F2E96B",
@@ -388,7 +409,7 @@ function renderPollution(pollution) {
         4: "#F2A03D",
         5: "#A67041"
     }
-    var aqiColor = `; background-color: `+theme[aqi];
+    var aqiColor = `; background-color: ` + theme[aqi];
     const template = (`
         
         <div class="card" style="width: 20%${aqiColor}">
@@ -439,6 +460,7 @@ function getMarkers() {
                 marker = new google.maps.Marker({
                     position: LatLng,
                     map: map,
+                    animation: google.maps.Animation.DROP,
                     title: feature.j.name
                 });
             (scale == 5) ? scale++ : scale

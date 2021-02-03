@@ -58,9 +58,9 @@ client.on("error", (error) => {
 
 
 // 1 /////////////////////////////////////////////////////////////////////////////////////
-const fs = require('fs');
-let rawdata = fs.readFileSync('city.list.min.json');
-let citiesIds = JSON.parse(rawdata);
+// const fs = require('fs');
+// let rawdata = fs.readFileSync('city.list.min.json');
+// let citiesIds = JSON.parse(rawdata);
 function getCityId(coord) {
     // return undefined;
     toPrecision = x => Number.parseFloat(x).toPrecision(3)
@@ -162,8 +162,8 @@ function formatCities(cities, weathers, pollutions) {
         "pollution": []
     };
     cities.forEach(function (city, index) {
-        var feature = {
-            "cityid": getCityId({ lon: city["lon"], lat: city["lat"] }),
+        var feature = { 
+            "cityid": undefined, //getCityId({ lon: city["lon"], lat: city["lat"] })
             "geometry": {
                 "type": "Point",
                 "coordinates": [city["lon"], city["lat"]]
