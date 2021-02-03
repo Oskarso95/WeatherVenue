@@ -44,8 +44,8 @@ html, body {
   position: relative;
   top: 10%;
   left: 0%;
-  z-index: 5;
-  background-color: #fff;
+  z-index: -1;
+  background-color: rgba(212, 0, 0, 0.418);
   padding: 5px;
   border: 1px solid #999;
   text-align: center;
@@ -58,7 +58,7 @@ html, body {
   width: 250px;
 }
 
-.place {
+.alert {
   font-family: 'open sans', arial, sans-serif;
   position: relative;
   font-size: 1.2em;
@@ -68,12 +68,12 @@ html, body {
   padding-right: 18px;
 }
 
-.distanceText {
+.alertContent {
   color: silver;
   font-family: 'open sans', arial, sans-serif;
   font-size: 1em;
   font-weight: 400;
-  margin-block-start: 0.25em;
+  /* margin-block-start: 0.25em; */
   padding-left: 18px;
   padding-right: 18px;
 }
@@ -84,16 +84,16 @@ ul {
   padding: 0;
 }
 
-.place li {
+.alert li {
   font: 200 20px/1.5 Helvetica, Verdana, sans-serif;
   border-bottom: 1px solid #ccc;
 }
 
-.place li:last-child {
+.alert li:last-child {
   border: none;
 }
 
-.place li:hover {
+.alert li:hover {
   font-size: 30px;
   background: #f6f6f6;
 }

@@ -89,6 +89,7 @@ function initMap() {
         });
         map.fitBounds(bounds);
         map.setCenter(center)
+        showAlertsList(currentList);
     }
 
     // Create the autocompletion search bar
@@ -190,6 +191,7 @@ function initMap() {
         currentPlace = place;
         getPicture(place.name);
         nearbyRequest(place);
+        showAlertsList(currentList);
     });
 
     var panButton = document.getElementsByClassName("custom-map-control-button")[0];
@@ -224,7 +226,7 @@ function initMap() {
     });
 
     // Populate current list of cities on a floating HTML panel on the map
-    // showplacesList(currentList);
+    showAlertsList(currentList);
 
 }
 
@@ -276,9 +278,15 @@ function nearbyRequest(place) {
 }
 
 // Creates an HTML panel which is a list of current cities
-function showplacesList( /*data,*/ places) {
-    if (!places || places.length == 0) {
-        console.log('empty places');
+function showAlertsList( /*data,*/ currentList) {
+    if (!currentList || currentList.length == 0)
+        return;
+    
+    var cityNames = currentList.weather.map(elem => { return elem.cityName });
+    var alerts = currentList.weather.map((elem, idx) => { return elem.alerts ? { city: cityNames[idx], alert: elem.alerts[0] } : undefined }).filter(elem => { return elem });
+
+    if (!alerts || alerts.length == 0) {
+        console.log('empty alerts');
         return;
     }
     let panel = document.createElement('ul');
@@ -294,23 +302,23 @@ function showplacesList( /*data,*/ places) {
         const body = document.body;
         body.insertBefore(panel, body.childNodes[0]);
     }
+    map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(panel);
 
     // Clear the previous details
     while (panel.lastChild) {
         panel.removeChild(panel.lastChild);
     }
 
-    places.features.forEach((place) => {
-        // Add place details with text formatting
+    alerts.forEach((alert) => {
+        // Add alert details with text formatting
         const name = document.createElement('li');
-        name.classList.add('place');
-        // const currentplace = data.getFeatureById(place.placeid);
-        name.textContent = place.properties.name; //currentplace.getProperty('name');
+        name.classList.add('alert');
+        name.textContent = alert.city;
         panel.appendChild(name);
-        // const distanceText = document.createElement('p');
-        // distanceText.classList.add('distanceText');
-        // distanceText.textContent = place.distanceText;
-        // panel.appendChild(distanceText);
+        const alertContent = document.createElement('p');
+        alertContent.classList.add('alertContent');
+        alertContent.textContent = alert.alert.event;
+        panel.appendChild(alertContent);
     });
     // Open the panel
     panel.classList.add('open');
