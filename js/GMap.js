@@ -38,7 +38,7 @@ function initMap() {
         default:
             break;
     }
-    
+
     if (currentList && currentList.features && currentList.features.length > 0) {
         coordinates = currentList.features[0].geometry.coordinates;
         center = {
@@ -131,7 +131,11 @@ function initMap() {
                     cityWeather = currentList.weather.filter((item) => {
                         return (item.cityName == marker.title);
                     })[0]
+                    cityPollution = currentList.pollution.filter((item) => {
+                        return (item.cityName == marker.title);
+                    })[0]
                     renderForecastDays(cityWeather.daily);
+                    renderPollution(cityPollution);
                 }
             });
         });
@@ -322,10 +326,10 @@ function renderForecastDays(dailies) {
                 'الجمعة',
                 'السبت'
             ];
-            break;    
+            break;
         default:
             break;
-    } 
+    }
     document.getElementById('forecast-items').innerHTML = "";
     document.body.style.backgroundImage = `url(http://openweathermap.org/img/wn/${dailies[dailies.length - 1].weather[0].icon || 'na'}.png), linear-gradient(to bottom, #82addb 0%,#ebb2b1 100%)`;
     document.documentElement.style.backgroundImage = `url(http://openweathermap.org/img/wn/${dailies[dailies.length - 1].weather[0].icon || 'na'}.png), linear-gradient(rgb(235, 178, 177) 0%, rgb(130, 173, 219) 100%)`;
@@ -370,6 +374,37 @@ function renderForecastDays(dailies) {
     // document.getElementById('forecast-items').insertAdjacentHTML('beforeend', template);
 }
 
+function renderPollution(pollution) {
+    console.log(pollution);
+    const aqi = pollution.list[0].main.aqi;
+    var d = new Date(0);
+    d.setUTCSeconds(pollution.list[0].dt);
+    var ISODate = d.toISOString().slice(0, 10);
+    const {co, no, no2 } = pollution.list[0].components;
+    var theme = {
+        1: "#4C5273",
+        2: "#F2E96B",
+        3: "#F2CA50",
+        4: "#F2A03D",
+        5: "#A67041"
+    }
+    var aqiColor = `; background-color: `+theme[aqi];
+    const template = (`
+        
+        <div class="card" style="width: 20%${aqiColor}">
+            <div class="card-body">
+                <p><img class="card-img mx-auto d-block" style="max-width: 100px;" scr="./img/AdobeColor-Environmental pollution.jpg"></p>
+                <h4 class="card-title text-center">Air Quality Index: ${aqi}</h4>
+                <h5 class="card-title text-center">${ISODate}</h5>
+                <p class="card-text text-center">CO: ${co} </p>
+                <p class="card-text text-center">NO: ${no} </p>
+                <p class="card-text text-center">NO2: ${no2} </p>
+            </div>
+        </div>
+    `);
+
+    document.getElementById('forecast-items').insertAdjacentHTML('afterbegin', template);
+}
 // #getMarkers, #setMapOnAll, #clearMarkers, #showMarkers are helpers to refresh markers.
 // Detach old features then attach new markers to map
 function getMarkers() {

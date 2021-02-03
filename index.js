@@ -32,17 +32,17 @@ app.use(express.static(__dirname + "/", {
     etag: true, // Just being explicit about the default.
     lastModified: true,  // Just being explicit about the default.
     setHeaders: (res, path) => {
-      const hashRegExp = new RegExp('\\.[0-9a-f]{8}\\.');
-  
-      if (path.endsWith('.html')) {
-        // All of the project's HTML files end in .html
-        res.setHeader('Cache-Control', 'no-cache');
-      } else if (hashRegExp.test(path)) {
-        // If the RegExp matched, then we have a versioned URL.
-        res.setHeader('Cache-Control', 'max-age=31536000');
-      }
+        const hashRegExp = new RegExp('\\.[0-9a-f]{8}\\.');
+
+        if (path.endsWith('.html')) {
+            // All of the project's HTML files end in .html
+            res.setHeader('Cache-Control', 'no-cache');
+        } else if (hashRegExp.test(path)) {
+            // If the RegExp matched, then we have a versioned URL.
+            res.setHeader('Cache-Control', 'max-age=31536000');
+        }
     },
-  }));
+}));
 app.get('/ar/', (req, res) => {
     res.redirect("/index_ar.html");
 });
@@ -56,7 +56,7 @@ client.on("error", (error) => {
 });
 
 
-  
+
 // 1 /////////////////////////////////////////////////////////////////////////////////////
 const fs = require('fs');
 let rawdata = fs.readFileSync('city.list.min.json');
@@ -84,10 +84,13 @@ function getCityId(coord) {
 var language = "en";
 async function fetchWeather(city) {
     return new Promise(async (resolve, reject) => {
-        API_Url = `https://api.openweathermap.org/data/2.5/onecall?lat=${city["lat"]}&lon=${city["lon"]}&lang=${language}&exclude=hourly,minutely,hourly&units=metric&appid=${OPENWEATHERMAP_API_KEY}`;
-        const body = await axios.get(API_Url);
-        const data = await body.data;
-        resolve(data);
+        API_Url_weather = `https://api.openweathermap.org/data/2.5/onecall?lat=${city["lat"]}&lon=${city["lon"]}&lang=${language}&exclude=hourly,minutely,hourly&units=metric&appid=${OPENWEATHERMAP_API_KEY}`;
+        const body0 = await axios.get(API_Url_weather);
+        const data0 = await body0.data;
+        API_Url_pollution = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${city["lat"]}&lon=${city["lon"]}&appid=${OPENWEATHERMAP_API_KEY}`;
+        const body1 = await axios.get(API_Url_pollution);
+        const data1 = await body1.data;
+        resolve({ weather: data0, pollution: data1 });
     });
 }
 
@@ -109,7 +112,7 @@ app.get('/nearby/:city', (req, res) => {
         // Check the redis store for the data first
         client.get(cityname, async (err, result) => {
             // redis unexpected errors
-            if (err)  {
+            if (err) {
                 console.error(err);
                 return res.status(500).send({
                     error: true,
@@ -130,9 +133,10 @@ app.get('/nearby/:city', (req, res) => {
                 };
                 var cities = nearbyCities(query).slice(0, 10);
                 var actions = cities.map(fetchWeather)
-                Promise.all(actions).then(function (weathers) {
-                    // console.log(weathers[0].daily)
-                    var result = formatCities(cities, weathers);
+                Promise.all(actions).then(function (forecasts) {
+                    weathers = forecasts.map(elem => { return elem.weather });
+                    pollutions = forecasts.map(elem => { return elem.pollution });
+                    var result = formatCities(cities, weathers, pollutions);
                     client.setex(cityname, 1440, JSON.stringify(result));
                     return res.status(200).send({
                         error: false,
@@ -150,11 +154,12 @@ app.get('/nearby/:city', (req, res) => {
 });
 
 // 4 /////////////////////////////////////////////////////////////////////////////////////
-function formatCities(cities, weathers) {
+function formatCities(cities, weathers, pollutions) {
     var newVar = {
         "type": "FeatureCollection",
         "features": [],
-        "weather": []
+        "weather": [],
+        "pollution": []
     };
     cities.forEach(function (city, index) {
         var feature = {
@@ -175,32 +180,34 @@ function formatCities(cities, weathers) {
         };
         newVar.features.push(feature);
         weathers[index]['cityName'] = city.name;
+        pollutions[index]['cityName'] = city.name;
     });
 
     newVar.weather = weathers;
+    newVar.pollution = pollutions;
     return newVar;
 }
 
 var dns = require('dns');
 
 app.use(function (req, res, next) {
-  var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  if (ip.substr(0, 7) == "::ffff:") {
-    ip = ip.substr(7)
-  }
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    if (ip.substr(0, 7) == "::ffff:") {
+        ip = ip.substr(7)
+    }
 
-  if (process.env.NODE_ENV == "dev" || ip.split('.')[0] == "127")
-    return next();
-  var reversed_ip = ip.split('.').reverse().join('.');
-  dns.resolve4([process.env.HONEYPOT_KEY, reversed_ip, 'dnsbl.httpbl.org'].join('.'), function (err, addresses) {
-    if (!addresses)
-      return next();
-    var _response = addresses.toString().split('.').map(Number);
-    var test = (_response[0] === 127 && _response[3] > 0); //visitor_type[_response[3]]
-    if (test)
-      res.send({ msg: 'we hate spam to begin with!' });
-    return next();
-  });
+    if (process.env.NODE_ENV == "dev" || ip.split('.')[0] == "127")
+        return next();
+    var reversed_ip = ip.split('.').reverse().join('.');
+    dns.resolve4([process.env.HONEYPOT_KEY, reversed_ip, 'dnsbl.httpbl.org'].join('.'), function (err, addresses) {
+        if (!addresses)
+            return next();
+        var _response = addresses.toString().split('.').map(Number);
+        var test = (_response[0] === 127 && _response[3] > 0); //visitor_type[_response[3]]
+        if (test)
+            res.send({ msg: 'we hate spam to begin with!' });
+        return next();
+    });
 });
 
 
