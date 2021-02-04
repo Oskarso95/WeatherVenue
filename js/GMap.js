@@ -418,9 +418,16 @@ function renderPollution (pollution) {
   }
   const aqiColor = '; background-color: ' + theme[aqi]
   const template = (`
-        
         <div class="card" style="width: 20%${aqiColor}">
-        <img class="card-img-top" scr="./img/AdobeColor-Environmental pollution.jpg">
+        <table style="width:100%">
+          <tr>
+            <th style= 'background-color: #4C5273; font-size: xx-small'>Good</th>
+            <th style= 'background-color: #F2E96B; font-size: xx-small'>Fair</th>
+            <th style= 'background-color: #F2CA50; font-size: xx-small'>Moderate</th>
+            <th style= 'background-color: #F2A03D; font-size: xx-small'>Poor</th>
+            <th style= 'background-color: #A67041; font-size: xx-small'>Very Poor</th>
+          </tr>
+        </table> 
             <div class="card-body">
                 <h4 class="card-title text-center">Air Quality Index: ${aqi}</h4>
                 <h5 class="card-title text-center">${ISODate}</h5>
