@@ -49,3 +49,8 @@ If you want to maintain the project with me; You can alwayse ask.
 Please keep it fair if you want to deploy anywhere; Ask for permission.
 
 Sweet coding !
+
+
+# License
+
+WeatherSpots is released under a [CC BY-NC-SA License](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).

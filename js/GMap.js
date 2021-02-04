@@ -285,14 +285,12 @@ function showAlertsList( /*data,*/ currentList) {
     var cityNames = currentList.weather.map(elem => { return elem.cityName });
     var alerts = currentList.weather.map((elem, idx) => { return elem.alerts ? { city: cityNames[idx], alert: elem.alerts[0] } : undefined }).filter(elem => { return elem });
 
-    if (!alerts || alerts.length == 0) {
-        console.log('empty alerts');
-        return;
-    }
+    
     let panel = document.createElement('ul');
     // If the panel already exists, use it. Else, create it and add to the page.
     if (document.getElementById('panel')) {
         panel = document.getElementById('panel');
+        // panel.style = "overflow: scroll;"
         // If panel is already open, close it
         if (panel.classList.contains('open')) {
             panel.classList.remove('open');
@@ -302,6 +300,7 @@ function showAlertsList( /*data,*/ currentList) {
         const body = document.body;
         body.insertBefore(panel, body.childNodes[0]);
     }
+    map.controls[google.maps.ControlPosition.BOTTOM_LEFT].clear();
     map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(panel);
 
     // Clear the previous details
@@ -309,6 +308,11 @@ function showAlertsList( /*data,*/ currentList) {
         panel.removeChild(panel.lastChild);
     }
 
+    if (!alerts || alerts.length == 0) {
+        panel.style.display ="none";
+        return;
+    }
+    panel.style.display ="block";
     alerts.forEach((alert) => {
         // Add alert details with text formatting
         const name = document.createElement('li');
@@ -421,8 +425,8 @@ function renderPollution(pollution) {
     const template = (`
         
         <div class="card" style="width: 20%${aqiColor}">
+        <img class="card-img-top" scr="./img/AdobeColor-Environmental pollution.jpg">
             <div class="card-body">
-                <p><img class="card-img mx-auto d-block" style="max-width: 100px;" scr="./img/AdobeColor-Environmental pollution.jpg"></p>
                 <h4 class="card-title text-center">Air Quality Index: ${aqi}</h4>
                 <h5 class="card-title text-center">${ISODate}</h5>
                 <p class="card-text text-center">CO: ${co} </p>
@@ -471,7 +475,9 @@ function getMarkers() {
                     animation: google.maps.Animation.DROP,
                     title: feature.j.name
                 });
-            (scale == 5) ? scale++ : scale
+            (scale == -1) ? scale++ : scale;
+            (scale == 5) ? scale-- : scale;
+            console.log(scale)
             marker.setIcon(`http://maps.google.com/mapfiles/ms/icons/${markersIcons[scale]}-dot.png`)
             markers.push(marker);
             // remove previous markers from map.data
