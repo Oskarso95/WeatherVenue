@@ -194,7 +194,9 @@ function initMap () {
   })
 
   var panButton = document.getElementsByClassName('custom-map-control-button')[0]
-  if (panButton) return
+  if (panButton) {
+    return
+  }
   var infoWindow = new google.maps.InfoWindow()
   const locationButton = document.createElement('button')
   locationButton.textContent = 'Go to Current Location'
@@ -419,22 +421,22 @@ function renderPollution (pollution) {
   const aqiColor = '; background-color: ' + theme[aqi]
   const template = (`
         <div class="card" style="width: 20%${aqiColor}">
-        <table style="width:100%">
-          <tr>
-            <th style= 'background-color: #4C5273; font-size: xx-small'>Good</th>
-            <th style= 'background-color: #F2E96B; font-size: xx-small'>Fair</th>
-            <th style= 'background-color: #F2CA50; font-size: xx-small'>Moderate</th>
-            <th style= 'background-color: #F2A03D; font-size: xx-small'>Poor</th>
-            <th style= 'background-color: #A67041; font-size: xx-small'>Very Poor</th>
-          </tr>
-        </table> 
-            <div class="card-body">
-                <h4 class="card-title text-center">Air Quality Index: ${aqi}</h4>
-                <h5 class="card-title text-center">${ISODate}</h5>
-                <p class="card-text text-center">CO: ${co} </p>
-                <p class="card-text text-center">NO: ${no} </p>
-                <p class="card-text text-center">NO2: ${no2} </p>
-            </div>
+          <table style="width:100%">
+            <tr>
+              <th style= 'background-color: #4C5273; font-size: xx-small'>Good</th>
+              <th style= 'background-color: #F2E96B; font-size: xx-small'>Fair</th>
+              <th style= 'background-color: #F2CA50; font-size: xx-small'>Moderate</th>
+              <th style= 'background-color: #F2A03D; font-size: xx-small'>Poor</th>
+              <th style= 'background-color: #A67041; font-size: xx-small'>Very Poor</th>
+            </tr>
+          </table> 
+          <div class="card-body">
+              <h4 class="card-title text-center">Air Quality Index: ${aqi}</h4>
+              <h5 class="card-title text-center">${ISODate}</h5>
+              <p class="card-text text-center">CO: ${co} </p>
+              <p class="card-text text-center">NO: ${no} </p>
+              <p class="card-text text-center">NO2: ${no2} </p>
+          </div>
         </div>
     `)
 
@@ -553,3 +555,6 @@ function getPicture (place) {
     }
   }
 }
+
+var today = new Date().toDateString();
+document.getElementById('date').innerHTML=today;

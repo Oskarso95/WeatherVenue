@@ -19,6 +19,7 @@
     defer></script>
   <link rel="stylesheet" type="text/css" href="./css/style.css" />
   <script src="./js/cookies-eu-banner.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/screenfull.js/5.1.0/screenfull.min.js" integrity="sha512-SGPHIoS+NsP1NUL5RohNpDs44JlF36tXLN6H3Cw+EUyenEc5zPXWqfw9D+xmvR00QYUYewQIJQ6P5yH82Vw6Fg==" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -33,7 +34,7 @@
     <img src="./img/loading.gif" /><br>
   </div>
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light py-0">
     <a class="navbar-brand" href="/">
       <img id='logo' src="./img/weather_venue_856-8.png" alt="weathervenue.com" width="100" alt="weathervenue" class="d-inline-block align-middle mr-2">
     </a>
@@ -50,7 +51,7 @@
           <a class="nav-link" href="weather_map_view">خريطة الطقس العامة</a>
         </li>
         <li class="nav-item btn btn-secondary">
-          <a class="nav-link" href="#">تبرع لالموقع</a>
+          <a class="nav-link" href="#">تبرع للموقع</a>
         </li>
         <li class="nav-item inactive">
           <a class="nav-link disabled" href="#">الاصدار 2</a>
@@ -63,6 +64,9 @@
         </li>
       </ul>
       <ul class="navbar-nav">
+        <li class="nav-item btn btn btn-info" id="fullscreen">
+          <a class="nav-link" href="#">وضع ملء الشاشة</a>
+        </li>
         <li class="nav-link">
           <div class="custom-control custom-switch">
             <input type="checkbox" class="custom-control-input" id="darkSwitch" />
@@ -118,17 +122,22 @@
       <div class="map_wrapper">
         <div id="map" style="width: 100%; height: 100%; "></div>
       </div>
+      
       <div class="container-fluid">
         <h3 id="location">ستظهر هنا تنبآت الطقس لمدة أسبوع. يمكنك اختيار المدن المجاورة من الخريطة</h3>
+        <p id="date"></p>
         <div class="row" id="forecast-items"></div>
       </div>
+
+      
 
       <section id="imgGrid">
 
       </section>
       <nav class="navbar sticky-bottom navbar-light bg-light">
       <div class="container-fluid">
-        <img id="copyright_google" src='./copyright_google/powered_by_google_on_white_hdpi.png'>
+        <img id="copyright_google" src='./copyright/powered_by_google_on_white_hdpi.png' alt="Powered by Google">
+        <a class="text-dark" href="https://Openweathermap.org/"> & Openweathermap.org</a>
         <div class="center">
           © 2020 Copyright:
           <a class="text-dark" href="https://WeatherVenue.com/">WeatherVenue.com</a>
@@ -146,5 +155,16 @@
       // Google Analytics code goes here.
       console.log("accepted")
   });
+  fullScreenBtn = document.getElementById('fullscreen');
+  fullScreenBtn.addEventListener('click', () => {
+    if (screenfull.isEnabled) {
+      screenfull.request();
+    } else {
+      // Ignore or do something else
+    }
+  });
+  screenfull.on('change', () => {
+		screenfull.isFullscreen ? fullScreenBtn.style.visibility = "hidden" : fullScreenBtn.style.visibility = "visible";
+	});
 </script>
 </html>

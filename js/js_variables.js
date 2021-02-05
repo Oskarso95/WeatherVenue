@@ -143,7 +143,7 @@ var cardsColors
 function styleItDark () {
   document.documentElement.style.backgroundColor = '#111'
   map.setOptions({ styles: styles.night })
-  document.getElementById('copyright_google').src = './copyright_google/powered_by_google_on_non_white_hdpi.png'
+  document.getElementById('copyright_google').src = './copyright/powered_by_google_on_non_white_hdpi.png'
   if (!cardsColors) {
     cardsColors = Array.from(document.getElementsByClassName('card')).map(card => { return card.style.backgroundColor })
     cardsColors = [...cardsColors]
@@ -159,7 +159,7 @@ function styleItDark () {
 function styleItWhite () {
   document.documentElement.style.backgroundColor = '#eee'
   map.setOptions({ styles: styles.hide })
-  document.getElementById('copyright_google').src = './copyright_google/powered_by_google_on_white_hdpi.png'
+  document.getElementById('copyright_google').src = './copyright/powered_by_google_on_white_hdpi.png'
   if (cardsColors) {
     Array.from(document.getElementsByClassName('card')).forEach(function (card, idx) {
       card.style.backgroundColor = cardsColors[idx]
