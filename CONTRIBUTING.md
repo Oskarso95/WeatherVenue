@@ -1,5 +1,5 @@
 
-### Contributing to SunnySunday
+### Contributing to WeatherVenue
 
 Like my other repositories, I try to make my projects welcoming to new comers. Whether you are new to open source or to programming in general, this is a nice starter project.
 Check [how to contribute page](https://opensource.guide/how-to-contribute/)
@@ -12,7 +12,7 @@ You can join me on Slack for questions or chat
 
 Current priority: 
 
-https://github.com/bacloud14/SunnySunday/issues/1
+https://github.com/bacloud14/WeatherVenue/issues/1
 
 Please know that I am not a keen NodeJS developer, but I successfully made this weather application. It is in its early stage and not proper for final service yet.
 

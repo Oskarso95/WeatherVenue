@@ -1,6 +1,6 @@
-# SunnySunday
+# WeatherVenue
 
-SunnySunday is a weather website using Google Maps and Openweathermap data to let people find best places to visit in their entourage; For warmer winter weather vacation or cool summer escapes. 
+WeatherVenue is a weather website using Google Maps and Openweathermap data to let people find best places to visit in their entourage; For warmer winter weather vacation or cool summer escapes. 
 
 It is a NodeJs & Express web app with other dependencies (axios, redis, reverse-geocode, nearby-cities, openweather-apis...).
 
@@ -38,7 +38,7 @@ You can join me on Slack for questions or chat
 
 Current priority: 
 
-https://github.com/bacloud14/SunnySunday/issues/1
+https://github.com/bacloud14/WeatherVenue/issues/1
 
 Please know that I am not a keen NodeJS developer, but I successfully made this weather application. It is in its early stage and not proper for final service yet.
 
@@ -53,4 +53,4 @@ Sweet coding !
 
 # License
 
-WeatherSpots is released under a [CC BY-NC-SA License](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
+WeatherVenue is released under a [CC BY-NC-SA License](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).

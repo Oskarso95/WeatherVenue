@@ -152,6 +152,8 @@ function styleItDark () {
   Array.from(document.getElementsByClassName('card')).forEach(card => {
     card.style.backgroundColor = pSBC(-0.2, card.style.backgroundColor)
   })
+
+  document.getElementById('logo').src = './img/weather_venue_856-8_on_black.png'
 }
 
 function styleItWhite () {
@@ -163,6 +165,7 @@ function styleItWhite () {
       card.style.backgroundColor = cardsColors[idx]
     })
   }
+  document.getElementById('logo').src = './img/weather_venue_856-8.png'
 }
 
 function show_loading () {
