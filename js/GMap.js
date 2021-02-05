@@ -89,6 +89,7 @@ function initMap () {
     })
     map.fitBounds(bounds)
     map.setCenter(center)
+    // map.setZoom(20)
     showAlertsList(currentList)
   }
 
@@ -172,7 +173,7 @@ function initMap () {
       map.fitBounds(place.geometry.viewport)
     } else {
       map.setCenter(place.geometry.location)
-      map.setZoom(13)
+      // map.setZoom(20)
     }
 
     // Set the position of the marker using the place ID and location.
@@ -367,7 +368,7 @@ function renderForecastDays (dailies) {
   const maxTemp = Math.max(...dailies.map((item) => { return item.temp.max }))
 
   dailies.forEach(function (period) {
-    var d = new Date(0)
+    const d = new Date(0)
     d.setUTCSeconds(period.dt)
     const ISODate = d.toISOString().slice(0, 10)
     const dayName = weekdayNames[d.getDay()] // new Date(period.dateTimeISO).getDay()
@@ -376,7 +377,7 @@ function renderForecastDays (dailies) {
     const minTempF = period.temp.min || 'N/A'
     const weather = period.weather[0].description || 'N/A'
     const hue = (1.0 - (maxTempF / maxTemp)) * 240
-    var hueColor = `hsl( ${hue} , 90%, 80%)`
+    let hueColor = `hsl( ${hue} , 90%, 80%)`
 
     hueColor = '; background-color: ' + hueColor
     const template = (`
@@ -390,24 +391,37 @@ function renderForecastDays (dailies) {
                 </div>
             </div>
         `)
-
     document.getElementById('forecast-items').insertAdjacentHTML('afterbegin', template)
   })
-  // const template = (`
-  //     <div class="card" style="width: 20%">
-  //         <div class="card-body">
-  //             <h4 class="card-title text-center">Featured picture</h4>
-  //             <p>Image bellow should be hidden. on click here should show the image</p>
-  //         </div>
-  //     </div>
-  // `);
-  // document.getElementById('forecast-items').insertAdjacentHTML('beforeend', template);
 }
 
 function renderPollution (pollution) {
-  console.log(pollution)
+  let aqiInterpretation
+  switch (language) {
+    case 'en':
+      aqiInterpretation = {
+        1: 'Air Quality: Good',
+        2: 'Air Quality: Fair',
+        3: 'Air Quality: Moderate',
+        4: 'Air Quality: Poor',
+        5: 'Air Quality: Very Poor'
+      }
+      break
+    case 'ar':
+      aqiInterpretation = {
+        1: 'جودة الهواء: جيدة',
+        2: 'جودة الهواء: مقبولة',
+        3: 'جودة الهواء: متوسطة',
+        4: 'جودة الهواء: ضعيفة',
+        5: 'جودة الهواء: ضعيفة جدا'
+      }
+      break
+    default:
+      break
+  }
+
   const aqi = pollution.list[0].main.aqi
-  var d = new Date(0)
+  const d = new Date(0)
   d.setUTCSeconds(pollution.list[0].dt)
   const ISODate = d.toISOString().slice(0, 10)
   const { co, no, no2 } = pollution.list[0].components
@@ -419,19 +433,20 @@ function renderPollution (pollution) {
     5: '#A67041'
   }
   const aqiColor = '; background-color: ' + theme[aqi]
+  let coo = 1
   const template = (`
         <div class="card" style="width: 20%${aqiColor}">
           <table style="width:100%">
             <tr>
-              <th style= 'background-color: #4C5273; font-size: xx-small'>Good</th>
-              <th style= 'background-color: #F2E96B; font-size: xx-small'>Fair</th>
-              <th style= 'background-color: #F2CA50; font-size: xx-small'>Moderate</th>
-              <th style= 'background-color: #F2A03D; font-size: xx-small'>Poor</th>
-              <th style= 'background-color: #A67041; font-size: xx-small'>Very Poor</th>
+              <th style= 'background-color: #4C5273; font-size: xx-small'>${aqiInterpretation[coo++].split(':')[1].trim()}</th>
+              <th style= 'background-color: #F2E96B; font-size: xx-small'>${aqiInterpretation[coo++].split(':')[1].trim()}</th>
+              <th style= 'background-color: #F2CA50; font-size: xx-small'>${aqiInterpretation[coo++].split(':')[1].trim()}</th>
+              <th style= 'background-color: #F2A03D; font-size: xx-small'>${aqiInterpretation[coo++].split(':')[1].trim()}</th>
+              <th style= 'background-color: #A67041; font-size: xx-small'>${aqiInterpretation[coo++].split(':')[1].trim()}</th>
             </tr>
           </table> 
           <div class="card-body">
-              <h4 class="card-title text-center">Air Quality Index: ${aqi}</h4>
+              <h4 class="card-title text-center">${aqiInterpretation[aqi]}</h4>
               <h5 class="card-title text-center">${ISODate}</h5>
               <p class="card-text text-center">CO: ${co} </p>
               <p class="card-text text-center">NO: ${no} </p>
