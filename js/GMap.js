@@ -381,8 +381,8 @@ function renderForecastDays (dailies) {
 
     hueColor = '; background-color: ' + hueColor
     const template = (`
-          <div class="col-6 col-md-3">
-            <div class="card w-100" style="${hueColor}">
+          <div class="col-6 col-md-3 col-lg-2 d-flex my-2">
+            <div class="card w-100 h-100" style="${hueColor}">
                 <div class="card-body">
                     <h4 class="card-title text-center">${dayName}</h4>
                     <h5 class="card-title text-center">${ISODate}</h5>
