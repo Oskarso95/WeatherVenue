@@ -47,12 +47,25 @@ app.use(
     },
   })
 );
+app.set("view engine","ejs"); //set default view engine to ejs
+
 app.get("/ar/", (req, res) => {
   res.redirect("/index_ar.html");
 });
-app.get("/weather_map_view/", (req, res) => {
-  res.redirect("/Weather_map_view.html");
+// app.get("/weather_map_view/", (req, res) => {
+//   res.redirect("/Weather_map_view.html");
+// });
+
+app.get("/weather_map_view/", (req,res) => {
+  res.render("weather_map_view",{env : process.env});
 });
+
+var data = ["Oskar","Erik","Anders","Ola"];
+
+app.get("/test",(req,res) => {
+  res.render("index",{users : data});
+});
+
 // make a connection to the local instance of redis
 const client = redis.createClient(redisPort);
 client.on("error", (error) => {
@@ -155,6 +168,7 @@ app.get("/nearby/:city", (req, res) => {
   } catch (error) {
     console.log(error);
     //handle error with errorPage instead 
+    //res.redirect("_erropage.html");
   }
 });
 

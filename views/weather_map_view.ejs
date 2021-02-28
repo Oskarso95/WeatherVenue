@@ -38,6 +38,7 @@
     var geoJSON;
     var request;
     var gettingData = false;
+    var openWeatherMapKey = "<%= env.OPENWEATHERMAP_API_KEY%>";
 
     function initialize() {
       var mapOptions = {
@@ -140,7 +141,7 @@
         + eastLng + "," + southLat + "," //right bottom
         + map.getZoom()
         + "&cluster=yes&format=json"
-        + "&APPID=" + openWeatherMapKey;
+        + "&APPID="+ openWeatherMapKey;
       request = new XMLHttpRequest();
       request.onload = proccessResults;
       request.open("get", requestString, true);

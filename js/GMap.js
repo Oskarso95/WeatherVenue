@@ -277,6 +277,8 @@ function nearbyRequest (place) {
   request.send()
 }
 
+/*Alert panel starts*/
+
 // Creates an HTML panel which is a list of current cities
 function showAlertsList (currentList) {
   if (!currentList || currentList.length === 0) {
@@ -327,6 +329,7 @@ function showAlertsList (currentList) {
   // Open the panel
   panel.classList.add('open')
 }
+/* Alert Panel code ends*/
 
 // Creates and Updates the HTML list of cards which is a list of weather information for one city in a week
 function renderForecastDays (dailies) {
@@ -495,7 +498,7 @@ function getMarkers () {
         position: LatLng,
         map: map,
         animation: google.maps.Animation.DROP,
-        title: feature.j.name
+        title: feature.name
       });
       (scale === -1) ? scale++ : scale;
       (scale === 5) ? scale-- : scale;
