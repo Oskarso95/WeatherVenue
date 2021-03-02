@@ -30,6 +30,7 @@ const OPENWEATHERMAP_API_KEY = process.env.OPENWEATHERMAP_API_KEY;
 app.listen(nodePort, () => {
   console.log(`Server running on port ${nodePort}`);
 });
+app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(__dirname + "/"));
 app.use(
   express.static(__dirname + "/", {
@@ -47,23 +48,22 @@ app.use(
     },
   })
 );
-app.set("view engine","ejs"); //set default view engine to ejs
+app.set("view engine", "ejs"); //set default view engine to ejs
 
-app.get("/ar/", (req, res) => {
-  res.redirect("/index_ar.html");
-});
+// app.get("/ar/", (req, res) => {
+//   res.redirect("/index_ar.html");
+// });
 // app.get("/weather_map_view/", (req, res) => {
 //   res.redirect("/Weather_map_view.html");
 // });
+var data = ["Oskar", "Erik", "Anders", "Ola"];
 
-app.get("/weather_map_view/", (req,res) => {
-  res.render("weather_map_view",{env : process.env});
+app.get("/", (req, res) => {
+  res.render("index.ejs", { users: data });
 });
 
-var data = ["Oskar","Erik","Anders","Ola"];
-
-app.get("/test",(req,res) => {
-  res.render("index",{users : data});
+app.get("/weather_map_view/", (req, res) => {
+  res.render("weather_map_view.ejs", { env: process.env });
 });
 
 // make a connection to the local instance of redis
@@ -167,8 +167,8 @@ app.get("/nearby/:city", (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    //handle error with errorPage instead 
-    //res.redirect("_erropage.html");
+    res.render("error");
+    //handle error with errorPage instead
   }
 });
 

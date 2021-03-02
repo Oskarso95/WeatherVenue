@@ -29,7 +29,6 @@ function initTheme() {
     document.body.removeAttribute('data-theme');
 }
 
-
 /**
  * Summary: resetTheme checks if the switch is 'on' or 'off' and if it is toggled
  * on it will set the HTML attribute 'data-theme' to dark so the dark-theme CSS is
