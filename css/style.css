@@ -1,9 +1,18 @@
-html, body {
+html {
+  background-image: linear-gradient(
+    rgb(235, 178, 177) 0%,
+    rgb(130, 173, 219) 100%
+  ) !important;
+}
+
+html,
+body {
   height: 100%;
+  min-height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  background: linear-gradient(to bottom, #82addb 0%,#ebb2b1 100%);
+  background: linear-gradient(to bottom, #82addb 0%, #ebb2b1 100%);
 }
 
 .controls {
@@ -49,7 +58,7 @@ html, body {
   /* padding: 5px; */
   border: 1px solid #999;
   text-align: center;
-  font-family: 'Roboto', 'sans-serif';
+  font-family: "Roboto", "sans-serif";
   line-height: 30px;
   /* padding-left: 10px; */
 }
@@ -59,7 +68,7 @@ html, body {
 }
 
 .alert {
-  font-family: 'open sans', arial, sans-serif;
+  font-family: "open sans", arial, sans-serif;
   position: relative;
   font-size: 1.6em;
   font-weight: 500;
@@ -70,7 +79,7 @@ html, body {
 
 .alertContent {
   color: rgb(73, 2, 2);
-  font-family: 'open sans', arial, sans-serif;
+  font-family: "open sans", arial, sans-serif;
   font-size: 1em;
   font-weight: 400;
   /* margin-block-start: 0.25em; */
@@ -86,7 +95,7 @@ ul {
 
 .alert li {
   font: 200 30px/1.5 Helvetica, Verdana, sans-serif;
-  border-bottom: 1px solid rgb(0, 0, 0);;
+  border-bottom: 1px solid rgb(0, 0, 0);
 }
 
 .alert li:last-child {
@@ -154,35 +163,36 @@ ul {
   color: #eee !important;
 }
 
-[data-theme="dark"] .modal-content{
+[data-theme="dark"] .modal-content {
   background-color: rgb(0, 0, 0) !important;
 }
 
-section{
+section {
   display: flex;
   flex-wrap: wrap;
 }
-div.featured_pictures{
+div.featured_pictures {
   flex-grow: 1;
   margin: 2px;
   background-color: violet;
   height: 200px;
 }
-.featured_pictures img{
+.featured_pictures img {
   height: 200px;
   object-fit: cover;
   max-width: 100%;
   min-width: 100%;
   vertical-align: bottom;
-  transition: transform .2s;
-  border:1px solid #021a40;
+  transition: transform 0.2s;
+  border: 1px solid #021a40;
 }
-.featured_pictures img:hover{
+.featured_pictures img:hover {
   transform: scale(1.5);
 }
 
 /* [FULL SCREEN SPINNER] */
-#spinner-back, #spinner-front {
+#spinner-back,
+#spinner-front {
   position: fixed;
   /* width: 100vw; */
   transition: all 1s;
@@ -201,7 +211,8 @@ div.featured_pictures{
   margin-top: 50vh;
   transform: translateY(-50%);
 }
-#spinner-back.show, #spinner-front.show {
+#spinner-back.show,
+#spinner-front.show {
   visibility: visible;
   opacity: 1;
 }
