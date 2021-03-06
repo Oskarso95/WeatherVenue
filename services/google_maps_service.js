@@ -22,7 +22,7 @@ function initMap() {
   // Instanciate a map. For first visit, there is no search yet and as a result no center, thus we take passsed parameters (language / centerLocation)
   var center = { lat: -33.8688, lng: 151.2195 };
   var scripts = document.getElementsByTagName("script");
-  var mapScript = scripts[3];
+  var mapScript = scripts[4];
   language = mapScript.getAttribute("lang");
   var centerLocation = mapScript.getAttribute("centerLocation");
   switch (centerLocation) {
@@ -98,6 +98,7 @@ function initMap() {
     map.fitBounds(bounds);
     map.setCenter(center);
     // map.setZoom(20)
+    console.log("showalert");
     showAlertsList(currentList);
   }
 
@@ -206,8 +207,22 @@ function initMap() {
     // infowindow.open(map, marker);
     currentPlace = place;
     getPicture(place.name);
-    nearbyRequest(place);
-    showAlertsList(currentList);
+    nearbyRequest(place)
+      .then(function (data) {
+        currentList = data;
+        setWithExpiry("response_" + place.name, currentList);
+        document.getElementById("location").innerHTML =
+          currentList.features[0].properties.name;
+        renderForecastDays(currentList.weather[0].daily);
+        initMap();
+        // generateWidgetLink();
+        hide_loading(); // Unblock page
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+    console.log("Show alert second");
+    //showAlertsList(currentList);
   });
 
   var panButton = document.getElementsByClassName(
@@ -246,6 +261,7 @@ function initMap() {
   });
 
   // Populate current list of cities on a floating HTML panel on the map
+  console.log("Show alert ");
   showAlertsList(currentList);
 }
 
@@ -262,39 +278,69 @@ function handleLocationError(browserHasGeolocation, infoWindow, pos) {
 // Look for weather cached data for today (local user time) for the city, if not found
 // create an AJAX request for one place; This is called once the user search for a city.
 // "nearby/" is the main API in back-end
-function nearbyRequest(place) {
-  show_loading(); // Block page while loading
-  var cache = getWithExpiry("response_" + place.name);
-  if (cache && cache.length > 0) {
-    currentList = cache;
-    document.getElementById("location").innerHTML =
-      currentList.features[0].properties.name;
-    renderForecastDays(currentList.weather[0].daily);
-    initMap();
-    // generateWidgetLink();
-    hide_loading(); // Unblock page
-    return;
-  }
-  const request = new XMLHttpRequest();
-  const requestObject = JSON.stringify({
-    lat: place.geometry.location.lat(),
-    lng: place.geometry.location.lng(),
-    cityname: place.name,
-    language: language,
+async function nearbyRequest(place) {
+  return new Promise(function (resolve, reject) {
+    show_loading(); // Block page while loading
+    var cache = getWithExpiry("response_" + place.name);
+    if (cache && cache.length > 0) {
+      currentList = cache;
+      document.getElementById("location").innerHTML =
+        currentList.features[0].properties.name;
+      renderForecastDays(currentList.weather[0].daily);
+      initMap();
+      // generateWidgetLink();
+      hide_loading(); // Unblock page
+      return;
+    }
+
+    grecaptcha.ready(function () {
+      grecaptcha
+        .execute("6LePZnQaAAAAACdKiEKOMZapuQLaP7BsulHobPQn", {
+          action: "submit",
+        })
+        .then(function (token) {
+          // Add your logic to submit to your backend server here.
+          const request = new XMLHttpRequest();
+          const requestObject = JSON.stringify({
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+            cityname: place.name,
+            language: language,
+            token: token,
+          });
+
+          request.open("GET", "nearby/" + requestObject);
+          request.responseType = "json";
+          request.onload = function () {
+            if (request.status >= 200 && request.status < 300) {
+              resolve(request.response.data);
+            } else {
+              reject({
+                status: this.status,
+                message: request.statusText,
+              });
+            }
+
+            // currentList = request.response.data;
+            // setWithExpiry("response_" + place.name, currentList);
+            // document.getElementById("location").innerHTML =
+            //   currentList.features[0].properties.name;
+            // renderForecastDays(currentList.weather[0].daily);
+            // initMap();
+            // // generateWidgetLink();
+            // hide_loading(); // Unblock page
+          };
+          request.onerror = function () {
+            reject({
+              status: this.status,
+              message: request.statusText,
+            });
+          };
+
+          request.send();
+        });
+    });
   });
-  request.open("GET", "nearby/" + requestObject);
-  request.responseType = "json";
-  request.onload = function () {
-    currentList = request.response.data;
-    setWithExpiry("response_" + place.name, currentList);
-    document.getElementById("location").innerHTML =
-      currentList.features[0].properties.name;
-    renderForecastDays(currentList.weather[0].daily);
-    initMap();
-    // generateWidgetLink();
-    hide_loading(); // Unblock page
-  };
-  request.send();
 }
 
 /*Alert panel starts*/
@@ -339,10 +385,9 @@ function showAlertsList(currentList) {
   var alertModal = document.querySelector("#weatherAlertModal");
   const body = alertModal.querySelector("#alertDataContainer");
 
-  console.log("alert length = " + alerts.length);
-  if (alerts.length > 0) {
-    // Clear the previous details
+  if (alerts.length > 0 && alerts) {
     if (body.hasChildNodes) {
+      //clear previous alerts
       while (body.lastChild) {
         body.removeChild(body.lastChild);
       }
@@ -386,38 +431,10 @@ function showAlertsList(currentList) {
 
 // Creates and Updates the HTML list of cards which is a list of weather information for one city in a week
 function renderForecastDays(dailies) {
-  // console.log("renderForecastDays");
-  // console.log(JSON.stringify(dailies));
   dailies.sort(function (first, second) {
     return second.dt - first.dt;
   });
-  var weekdayNames;
-  switch (language) {
-    case "en":
-      weekdayNames = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ];
-      break;
-    case "ar":
-      weekdayNames = [
-        "الأحد",
-        "الإثنين",
-        "الثلثاء",
-        "الأربعاء",
-        "الخميس",
-        "الجمعة",
-        "السبت",
-      ];
-      break;
-    default:
-      break;
-  }
+  var weekdayNames = getWeekDayNames(language);
   document.getElementById("forecast-items").innerHTML = "";
   document.body.style.backgroundImage = `url(http://openweathermap.org/img/wn/${
     dailies[dailies.length - 1].weather[0].icon || "na"
@@ -549,6 +566,34 @@ function renderPollution(pollution) {
     .getElementById("forecast-items")
     .insertAdjacentHTML("afterbegin", template);
 }
+
+function getWeekDayNames(language) {
+  switch (language) {
+    case "en":
+      return [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+    case "ar":
+      return [
+        "الأحد",
+        "الإثنين",
+        "الثلثاء",
+        "الأربعاء",
+        "الخميس",
+        "الجمعة",
+        "السبت",
+      ];
+    default:
+      return [];
+  }
+}
+
 // #getMarkers, #setMapOnAll, #clearMarkers, #showMarkers are helpers to refresh markers.
 // Detach old features then attach new markers to map
 function getMarkers() {
@@ -593,7 +638,6 @@ function getMarkers() {
       });
       scale === -1 ? scale++ : scale;
       scale === 5 ? scale-- : scale;
-      console.log(scale);
       marker.setIcon(
         `http://maps.google.com/mapfiles/ms/icons/${markersIcons[scale]}-dot.png`
       );

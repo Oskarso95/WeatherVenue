@@ -30,7 +30,7 @@ const OPENWEATHERMAP_API_KEY = process.env.OPENWEATHERMAP_API_KEY;
 app.listen(nodePort, () => {
   console.log(`Server running on port ${nodePort}`);
 });
-app.set('views', path.join(__dirname, 'views'));
+app.set("views", path.join(__dirname, "views"));
 app.use(express.static(__dirname + "/"));
 app.use(
   express.static(__dirname + "/", {
@@ -56,10 +56,9 @@ app.set("view engine", "ejs"); //set default view engine to ejs
 // app.get("/weather_map_view/", (req, res) => {
 //   res.redirect("/Weather_map_view.html");
 // });
-var data = ["Oskar", "Erik", "Anders", "Ola"];
 
 app.get("/", (req, res) => {
-  res.render("index.ejs", { users: data });
+  res.render("index.ejs");
 });
 
 app.get("/weather_map_view/", (req, res) => {
@@ -119,10 +118,17 @@ app.get("/nearby/:city", (req, res) => {
         data: "Bad request",
       });
     }
-
     const geometry = JSON.parse(req.params.city);
     const cityname = geometry.cityname;
     language = geometry.language;
+
+    if (!verifyCaptcha(geometry.token)) {
+      return res.status(500).send({
+        error: true,
+        message: "Captcha invalid",
+        data: "Captcha invalid",
+      });
+    }
 
     // Check the redis store for the data first
     client.get(cityname, async (err, result) => {
@@ -168,9 +174,26 @@ app.get("/nearby/:city", (req, res) => {
   } catch (error) {
     console.log(error);
     res.render("error");
-    //handle error with errorPage instead
   }
 });
+
+async function verifyCaptcha(token) {
+  try {
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    var url =
+      "https://www.google.com/recaptcha/api/siteverify?secret=" +
+      encodeURI(secretKey) +
+      "&response=" +
+      encodeURI(token);
+    const response = await axios.get(url);
+    if (response.data.success && response.data.score > 0.4) {
+      return true;
+    }
+  } catch (error) {
+    return false;
+  }
+  return false;
+}
 
 // 4 /////////////////////////////////////////////////////////////////////////////////////
 function formatCities(cities, weathers, pollutions) {
@@ -208,6 +231,7 @@ function formatCities(cities, weathers, pollutions) {
 }
 
 const dns = require("dns");
+const { json } = require("express");
 
 app.use(function (req, res, next) {
   let ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
