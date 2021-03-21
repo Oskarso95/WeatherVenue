@@ -140,7 +140,6 @@ app.get("/nearby/:city", (req, res) => {
       client.get(cityname, async (err, result) => {
         // redis unexpected errors
         if (err) {
-          console.error(err);
           return res.status(500).send({
             error: true,
             message: "Server error",
@@ -192,7 +191,6 @@ async function verifyCaptcha(token) {
       "&response=" +
       encodeURI(token);
     const response = await axios.get(url);
-    console.log(response.data.score);
     if (response.data.success && response.data.score > 0.6) {
       return true;
     }
