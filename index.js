@@ -14,15 +14,12 @@ const app = express();
 app.use(favicon(path.join(__dirname, "img", "icon.png")));
 app.use(helmet({ contentSecurityPolicy: false }));
 const rateLimit = require("express-rate-limit");
-// Enable if you're behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
-// see https://expressjs.com/en/guide/behind-proxies.html
-// app.set('trust proxy', 1);
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30, // limit each IP to 100 requests per windowMs
+const requestLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
 });
-//  apply to all requests
-app.use(limiter);
+//  apply to search for cities requests
+app.use("/", requestLimit);
 const nodePort = process.env.NODE_PORT;
 const redisPort = process.env.REDIS_PORT;
 const OPENWEATHERMAP_API_KEY = process.env.OPENWEATHERMAP_API_KEY;
@@ -50,19 +47,28 @@ app.use(
 );
 app.set("view engine", "ejs"); //set default view engine to ejs
 
-// app.get("/ar/", (req, res) => {
-//   res.redirect("/index_ar.html");
-// });
-// app.get("/weather_map_view/", (req, res) => {
-//   res.redirect("/Weather_map_view.html");
-// });
-
 app.get("/", (req, res) => {
   res.render("index.ejs");
 });
 
+app.get("/ar/", (req, res) => {
+  res.render("index_ar.ejs");
+});
+
 app.get("/weather_map_view/", (req, res) => {
   res.render("weather_map_view.ejs", { env: process.env });
+});
+
+app.get("/error", (req, res) => {
+  if(req.query.error != undefined){
+    res.render("partials/error", {
+      errorMessage: req.query.error,
+    });
+    return;
+  }
+  res.render("partials/error", {
+    errorMessage : "Something went wrong!!",
+  });
 });
 
 // make a connection to the local instance of redis
@@ -122,58 +128,58 @@ app.get("/nearby/:city", (req, res) => {
     const cityname = geometry.cityname;
     language = geometry.language;
 
-    if (!verifyCaptcha(geometry.token)) {
-      return res.status(500).send({
-        error: true,
-        message: "Captcha invalid",
-        data: "Captcha invalid",
-      });
-    }
-
-    // Check the redis store for the data first
-    client.get(cityname, async (err, result) => {
-      // redis unexpected errors
-      if (err) {
-        console.error(err);
+    verifyCaptcha(geometry.token).then((captcha) => {
+      if (!captcha) {
         return res.status(500).send({
           error: true,
-          message: "Server error",
-          data: "Server error",
+          message: "Invalid captcha",
+          data: "Invalid captcha",
         });
       }
-      if (result) {
-        return res.status(200).send({
-          error: false,
-          message: `Weather data for nearby cities for ${cityname} from the cache`,
-          data: JSON.parse(result),
-        });
-      } else {
-        const query = {
-          latitude: geometry.lat,
-          longitude: geometry.lng,
-        };
-        const cities = nearbyCities(query).slice(0, 10);
-        const actions = cities.map(fetchWeather);
-        Promise.all(actions).then(function (forecasts) {
-          var weathers = forecasts.map((elem) => {
-            return elem.weather;
+      // Check the redis store for the data first
+      client.get(cityname, async (err, result) => {
+        // redis unexpected errors
+        if (err) {
+          console.error(err);
+          return res.status(500).send({
+            error: true,
+            message: "Server error",
+            data: "Server error",
           });
-          var pollutions = forecasts.map((elem) => {
-            return elem.pollution;
-          });
-          const result = formatCities(cities, weathers, pollutions);
-          client.setex(cityname, 1440, JSON.stringify(result));
+        }
+        if (result) {
           return res.status(200).send({
             error: false,
-            message: "Weather data for nearby cities from the server",
-            data: result,
+            message: `Weather data for nearby cities for ${cityname} from the cache`,
+            data: JSON.parse(result),
           });
-        });
-      }
+        } else {
+          const query = {
+            latitude: geometry.lat,
+            longitude: geometry.lng,
+          };
+          const cities = nearbyCities(query).slice(0, 10);
+          const actions = cities.map(fetchWeather);
+          Promise.all(actions).then(function (forecasts) {
+            var weathers = forecasts.map((elem) => {
+              return elem.weather;
+            });
+            var pollutions = forecasts.map((elem) => {
+              return elem.pollution;
+            });
+            const result = formatCities(cities, weathers, pollutions);
+            client.setex(cityname, 1440, JSON.stringify(result));
+            return res.status(200).send({
+              error: false,
+              message: "Weather data for nearby cities from the server",
+              data: result,
+            });
+          });
+        }
+      });
     });
   } catch (error) {
     console.log(error);
-    res.render("error");
   }
 });
 
@@ -186,7 +192,8 @@ async function verifyCaptcha(token) {
       "&response=" +
       encodeURI(token);
     const response = await axios.get(url);
-    if (response.data.success && response.data.score > 0.4) {
+    console.log(response.data.score);
+    if (response.data.success && response.data.score > 0.6) {
       return true;
     }
   } catch (error) {

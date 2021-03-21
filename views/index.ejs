@@ -30,13 +30,14 @@
       crossorigin="anonymous"
       defer
     ></script>
-    <script
+    <script 
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBcL91cr-kioveamPxcvnQTT4OA9asC1TE&callback=initMap&libraries=places&v=weekly"
       centerLocation="london"
       lang="en"
       defer
     ></script>
     <link rel="stylesheet" type="text/css" href="./css/style.css" />
+    <link rel="stylesheet" type="text/css" href="./css/owfont-regular.min.css"/>
     <script src="./js/cookies-eu-banner.js"></script>
 
     <script
@@ -46,9 +47,10 @@
     ></script>
   </head>
   <body>
-    <%- include("partials/header") %> <%- include("partials/cookie_eu_banner")%>
-    <%- include("partials/disclaimer_modal") %> <%-
-    include("partials/weather_alert_panel.ejs") %>
+    <%- include("partials/header") %> 
+    <%- include("partials/cookie_eu_banner")%>
+    <%- include("partials/disclaimer_modal") %> 
+    <%- include("partials/weather_alert_panel.ejs") %>
 
     <!-- this block can float in code, order doesnt matter -->
     <input
@@ -64,19 +66,21 @@
       <span id="place-address"></span>
     </div>
     <!-- this block can float in code, order doesnt matter -->
-    <div class="empty-space" style="width: 100%; height: 5%"></div>
-    <div class="map_wrapper">
+    <div class="empty-space bg-white" style="width: 100%; ">
+      <h3 id="location">Search for your city to display the 8-day forecast.</h3>
+      <p id="date"></p>
+    </div>
+    
+    <div class="w-100 h-100">
       <div id="map" style="width: 100%; height: 100%"></div>
     </div>
     <div class="container-fluid">
-      <h3 id="location">Search for your city to display the 8-day forecast.</h3>
-      <p id="date"></p>
       <div class="row" id="forecast-items"></div>
     </div>
     <section id="imgGrid"></section>
   </body>
   <script src="./js/js_variables.js"></script>
-  <script src="./services/google_maps_service.js"></script>
+  <script src="./js/GMap.js"></script>
   <script src="https://www.google.com/recaptcha/api.js?render=6LePZnQaAAAAACdKiEKOMZapuQLaP7BsulHobPQn"></script>
   <script>
     new CookiesEuBanner(function () {

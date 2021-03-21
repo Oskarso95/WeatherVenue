@@ -4,6 +4,7 @@
 // selected.
 // This example requires the Places library. Include the libraries=places
 // parameter when you first load the API. For example:
+
 // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
 var currentPlace;
 var map;
@@ -118,12 +119,11 @@ function initMap() {
       input,
       autocompleteOptions
     );
-    map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
     autocomplete.bindTo("bounds", map);
     // Specify just the place data fields that you need.
     autocomplete.setFields(["place_id", "geometry", "name"]);
   }
-
   var infowindow = new google.maps.InfoWindow();
   var infowindowContent = document.getElementById("infowindow-content");
   const infowindowContentPrime = infowindowContent.cloneNode(true);
@@ -207,22 +207,7 @@ function initMap() {
     // infowindow.open(map, marker);
     currentPlace = place;
     getPicture(place.name);
-    nearbyRequest(place)
-      .then(function (data) {
-        currentList = data;
-        setWithExpiry("response_" + place.name, currentList);
-        document.getElementById("location").innerHTML =
-          currentList.features[0].properties.name;
-        renderForecastDays(currentList.weather[0].daily);
-        initMap();
-        // generateWidgetLink();
-        hide_loading(); // Unblock page
-      })
-      .catch(function (err) {
-        console.log(err);
-      });
-    console.log("Show alert second");
-    //showAlertsList(currentList);
+    nearbyRequest(place);
   });
 
   var panButton = document.getElementsByClassName(
@@ -261,7 +246,6 @@ function initMap() {
   });
 
   // Populate current list of cities on a floating HTML panel on the map
-  console.log("Show alert ");
   showAlertsList(currentList);
 }
 
@@ -278,68 +262,52 @@ function handleLocationError(browserHasGeolocation, infoWindow, pos) {
 // Look for weather cached data for today (local user time) for the city, if not found
 // create an AJAX request for one place; This is called once the user search for a city.
 // "nearby/" is the main API in back-end
-async function nearbyRequest(place) {
-  return new Promise(function (resolve, reject) {
-    show_loading(); // Block page while loading
-    var cache = getWithExpiry("response_" + place.name);
-    if (cache && cache.length > 0) {
-      currentList = cache;
-      document.getElementById("location").innerHTML =
-        currentList.features[0].properties.name;
-      renderForecastDays(currentList.weather[0].daily);
-      initMap();
-      // generateWidgetLink();
-      hide_loading(); // Unblock page
-      return;
-    }
+function nearbyRequest(place) {
+  show_loading(); // Block page while loading
+  var cache = getWithExpiry("response_" + place.name);
+  if (cache && cache.length > 0) {
+    currentList = cache;
+    document.getElementById("location").innerHTML =
+      currentList.features[0].properties.name;
+    renderForecastDays(currentList.weather[0].daily);
+    initMap();
+    // generateWidgetLink();
+    hide_loading(); // Unblock page
+    return;
+  }
 
-    grecaptcha.ready(function () {
-      grecaptcha
-        .execute("6LePZnQaAAAAACdKiEKOMZapuQLaP7BsulHobPQn", {
-          action: "submit",
-        })
-        .then(function (token) {
-          // Add your logic to submit to your backend server here.
-          const request = new XMLHttpRequest();
-          const requestObject = JSON.stringify({
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-            cityname: place.name,
-            language: language,
-            token: token,
-          });
-
-          request.open("GET", "nearby/" + requestObject);
-          request.responseType = "json";
-          request.onload = function () {
-            if (request.status >= 200 && request.status < 300) {
-              resolve(request.response.data);
-            } else {
-              reject({
-                status: this.status,
-                message: request.statusText,
-              });
-            }
-
-            // currentList = request.response.data;
-            // setWithExpiry("response_" + place.name, currentList);
-            // document.getElementById("location").innerHTML =
-            //   currentList.features[0].properties.name;
-            // renderForecastDays(currentList.weather[0].daily);
-            // initMap();
-            // // generateWidgetLink();
-            // hide_loading(); // Unblock page
-          };
-          request.onerror = function () {
-            reject({
-              status: this.status,
-              message: request.statusText,
-            });
-          };
-
-          request.send();
+  grecaptcha.ready(function () {
+    grecaptcha
+      .execute("6LePZnQaAAAAACdKiEKOMZapuQLaP7BsulHobPQn", {
+        action: "submit",
+      })
+      .then(function (token) {
+        // Add your logic to submit to your backend server here.
+        const request = new XMLHttpRequest();
+        const requestObject = JSON.stringify({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          cityname: place.name,
+          language: language,
+          token: token,
         });
-    });
+        request.open("GET", "nearby/" + requestObject);
+        request.responseType = "json";
+        let locationTitle = document.getElementById("location");
+        request.onload= function () {
+          if (request.status >= 200 && request.status < 300) {
+            currentList = request.response.data;
+            setWithExpiry("response_" + place.name, currentList);
+            locationTitle.innerHTML = currentList.features[0].properties.name;
+            renderForecastDays(currentList.weather[0].daily);
+            initMap();
+            hide_loading(); // Unblock page
+          } else {
+            window.location.href = `/error?error=${request.response}`;
+          }
+        };
+        request.send();
+      });
   });
 }
 
@@ -365,52 +333,18 @@ function showAlertsList(currentList) {
       return elem;
     });
 
-  //   let panel = document.createElement('ul')
-  //   // If the panel already exists, use it. Else, create it and add to the page.
-  //   if (document.getElementById('panel')) {
-  //     panel = document.getElementById('panel')
-  //     // panel.style = "overflow: scroll;"
-  //     // If panel is already open, close it
-  //     if (panel.classList.contains('open')) {
-  //       panel.classList.remove('open')
-  //     }
-  //   } else {
-  //     panel.setAttribute('id', 'panel')
-  //     const body = document.body
-  //     body.insertBefore(panel, body.childNodes[0])
-  //   }
-  //   map.controls[google.maps.ControlPosition.BOTTOM_LEFT].clear()
-  //   map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(panel)
-
   var alertModal = document.querySelector("#weatherAlertModal");
   const body = alertModal.querySelector("#alertDataContainer");
 
   if (alerts.length > 0 && alerts) {
     if (body.hasChildNodes) {
-      //clear previous alerts
       while (body.lastChild) {
         body.removeChild(body.lastChild);
       }
     }
-    //   if (!alerts || alerts.length === 0) {
-    //     panel.style.display = "none";
-    //     return;
-    //   }
-    //panel.style.display = "block";
-    //   alerts.forEach((alert) => {
-    //     // Add alert details with text formatting
-    //     const name = document.createElement("li");
-    //     name.classList.add("alert");
-    //     name.textContent = alert.city;
-    //     panel.appendChild(name);
-    //     const alertContent = document.createElement("p");
-    //     alertContent.classList.add("alertContent");
-    //     alertContent.textContent = alert.alert.event;
-    //     panel.appendChild(alertContent);
-    //   });
 
     alerts.forEach((alert) => {
-      let city = document.createElement("h3"); //create heading 5 with city name
+      let city = document.createElement("h3"); //create heading with city name
       city.textContent = alert.city;
       body.appendChild(city);
       let event = document.createElement("h5");
@@ -436,12 +370,12 @@ function renderForecastDays(dailies) {
   });
   var weekdayNames = getWeekDayNames(language);
   document.getElementById("forecast-items").innerHTML = "";
-  document.body.style.backgroundImage = `url(http://openweathermap.org/img/wn/${
-    dailies[dailies.length - 1].weather[0].icon || "na"
-  }.png), linear-gradient(to bottom, #82addb 0%,#ebb2b1 100%)`;
-  document.documentElement.style.backgroundImage = `url(http://openweathermap.org/img/wn/${
-    dailies[dailies.length - 1].weather[0].icon || "na"
-  }.png), linear-gradient(rgb(235, 178, 177) 0%, rgb(130, 173, 219) 100%)`;
+  //   document.body.style.backgroundImage = `url(http://openweathermap.org/img/wn/${
+  //     dailies[dailies.length - 1].weather[0].icon || "na"
+  //   }.png), linear-gradient(to bottom, #82addb 0%,#ebb2b1 100%)`;
+  //   document.documentElement.style.backgroundImage = `url(http://openweathermap.org/img/wn/${
+  //     dailies[dailies.length - 1].weather[0].icon || "na"
+  //   }.png), linear-gradient(rgb(235, 178, 177) 0%, rgb(130, 173, 219) 100%)`;
   const maxTemp = Math.max(
     ...dailies.map((item) => {
       return item.temp.max;
@@ -453,23 +387,19 @@ function renderForecastDays(dailies) {
     d.setUTCSeconds(period.dt);
     const ISODate = d.toISOString().slice(0, 10);
     const dayName = weekdayNames[d.getDay()]; // new Date(period.dateTimeISO).getDay()
-    const iconSrc = `http://openweathermap.org/img/wn/${
-      period.weather[0].icon || "na"
-    }@4x.png`;
     const maxTempF = period.temp.max || "N/A";
     const minTempF = period.temp.min || "N/A";
     const weather = period.weather[0].description || "N/A";
-    const hue = (1.0 - maxTempF / maxTemp) * 240;
-    let hueColor = `hsl( ${hue} , 90%, 80%)`;
+    const id = period.weather[0].id || 800;
+    let bgColor = ";" + getColorByWeather(period.weather[0].main);
 
-    hueColor = "; background-color: " + hueColor;
     const template = `
-          <div class="col-6 col-md-3 d-flex my-2">
-            <div class="card w-100 h-100" style="${hueColor}">
-                <div class="card-body">
-                    <h4 class="card-title text-center">${dayName}</h4>
+          <div class="col-12 col-sm-6 col-md-4 col-lg-3 d-flex my-2">
+            <div class="card w-100 h-100 text-white border-0" style="${bgColor}">
+            <i class="owf owf-${id} owf-4x text-white"></i>
+            <h4 class="card-title p-2">${dayName}</h4>    
+            <div class="card-body">
                     <h5 class="card-title text-center">${ISODate}</h5>
-                    <p><img class="card-img mx-auto d-block" style="max-width: 100px;" src="${iconSrc}"></p>
                     <h6 class="card-title text-center">${weather}</h6>
                     <p class="card-text text-center">High: ${maxTempF} <br />Low: ${minTempF}</p>
                 </div>
@@ -734,3 +664,25 @@ function getPicture(place) {
 }
 var today = new Date().toDateString();
 document.getElementById("date").innerHTML = today;
+
+function getColorByWeather(weather) {
+  const snow = "Snow";
+  const rain = "Rain";
+  const clear = "Clear";
+  const clouds = "Clouds";
+
+  if (weather.includes(snow)) {
+    return "background-color: rgba(10,10,111,0.8)";
+  }
+  if (weather.includes(rain)) {
+    return "background: linear-gradient(180deg, rgba(10,10,111,1) 32%, rgba(0,0,0,1) 99%)";
+  }
+  if (weather.includes(clear)) {
+    return "background: linear-gradient(0deg, rgba(246,67,83,1) 33%, rgba(238,218,80,1) 100%);";
+  }
+  if (weather.includes(clouds)) {
+    return "background: linear-gradient(0deg, rgba(10,10,111,1) 0%, rgba(0,212,255,1) 75%);";
+  }
+
+  return "background: linear-gradient(180deg, rgba(10,10,111,1) 32%, rgba(0,0,0,1) 99%)";
+}
